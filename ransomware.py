@@ -155,7 +155,7 @@ def MyfileEncryptMAC(filepath):
     }
 
     # Store encoded JSON data to JSON file
-    with open('hmac//HMACdata.json', 'w') as f:
+    with open(os.getcwd() + '\\hmac\\HMACdata.json', 'w') as f:
         json.dump(data, f)
 
     return c, iv, encKey, HMACKey, tag, ext
@@ -163,7 +163,7 @@ def MyfileEncryptMAC(filepath):
 # This function module is not needed anymore
 def MyfileDecryptMAC():
     # Open and Decodes JSON file
-    with open('hmac//HMACdata.json', 'r') as f:
+    with open(os.getcwd() + '\\hmac\\HMACdata.json', 'r') as f:
         data = json.load(f)
 
     # In bytes
@@ -251,7 +251,7 @@ def MyRSAEncryptMAC(filepath, RSA_PublicKey_filepath, fileNumber):
     MyfileEncryptMAC(filepath)
 
     # Open and store data from HMACdata.json into 'data'
-    with open('hmac\HMACdata.json', 'r') as f:
+    with open(os.getcwd() + '\\hmac\\HMACdata.json', 'r') as f:
         data = json.load(f)
 
     # Convert data to bytes
@@ -307,7 +307,7 @@ def MyRSAEncryptMAC(filepath, RSA_PublicKey_filepath, fileNumber):
 
     os.remove(filepath)
     print(Fore.LIGHTGREEN_EX + "Encrypting " + filepath)
-    #print(RSACipher, c, iv, tag)
+    print(RSACipher, c, iv, tag)
     return RSACipher, c, iv, tag, ext
 
 def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
@@ -377,17 +377,19 @@ def main():
     # Generate RSA key for key pairs
     new_key = RSA.generate(4096)
 
+    #print(os.getcwd())
+
     # Create and write public key to pem file
     public_key = new_key.publickey().exportKey("PEM")
-    pub_key_filename = os.path.join('keys//rsa_public_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
-    f = open(pub_key_filename, 'wb')
+    #pub_key_filename = os.path.join('keys//rsa_public_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
+    f = open(os.getcwd() + '\\keys\\rsa_public_key.pem', 'wb')
     f.write(public_key)
     f.close()
 
     # Create and write private key to pem file
     private_key = new_key.exportKey("PEM")
-    pri_key_filename = os.path.join('keys//rsa_private_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
-    f = open(pri_key_filename, 'wb')
+    #pri_key_filename = os.path.join('keys//rsa_private_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
+    f = open(os.getcwd() + '\\keys\\rsa_private_key.pem', 'wb')
     f.write(private_key)
     f.close()
 
@@ -397,8 +399,8 @@ def main():
     mypath = confirmPath.replace("/", "\\")
 
     # Initialize Filepaths for target file, public key, and private key
-    RSA_PublicKey_filepath = 'keys//rsa_public_key.pem'
-    RSA_PrivateKey_filepath = 'keys//rsa_private_key.pem'
+    RSA_PublicKey_filepath = os.getcwd() + '\\keys\\rsa_public_key.pem'
+    RSA_PrivateKey_filepath = os.getcwd() + '\\keys\\rsa_private_key.pem'
 
     counter = 0
     for root, dirs, files in os.walk(mypath, topdown=True):
